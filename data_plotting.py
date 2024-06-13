@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
+def calculate_std_dev(data):
+    std_dev = data['Close'].std()
+    return std_dev
+    
 def create_and_save_plot(data, ticker, period, filename=None, style='default'):
     plt.style.use(style)
     plt.figure(figsize=(10, 6))
@@ -11,6 +14,9 @@ def create_and_save_plot(data, ticker, period, filename=None, style='default'):
             dates = data.index.to_numpy()
             plt.plot(dates, data['Close'].values, label='Close Price')
             plt.plot(dates, data['Moving_Average'].values, label='Moving Average')
+            if show_std_dev:
+                std_dev = calculate_std_dev(data)
+                plt.axhline(y=std_dev, color='r', linestyle='--', label=f'Std Dev ({std_dev:.2f})')
         else:
             print("Информация о дате отсутствует или не имеет распознаваемого формата.")
             return
