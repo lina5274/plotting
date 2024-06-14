@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import pandas as pd
 
 def calculate_std_dev(data):
@@ -12,30 +12,31 @@ def create_and_save_plot(data, ticker, period, filename=None, style='default'):
     if 'Date' not in data:
         if pd.api.types.is_datetime64_any_dtype(data.index):
             dates = data.index.to_numpy()
-            plt.plot(dates, data['Close'].values, label='Close Price')
-            plt.plot(dates, data['Moving_Average'].values, label='Moving Average')
+            fig.add_trace(go.Scatter(x=dates, y=data['Close'], mode='lines', name='Close Price'))
+            fig.add_trace(go.Scatter(x=dates, y=data['Moving_Average'], mode='lines', name='Moving Average'))
             if show_std_dev:
                 std_dev = calculate_std_dev(data)
-                plt.axhline(y=std_dev, color='r', linestyle='--', label=f'Std Dev ({std_dev:.2f})')
+                fig.add_shape(type="line", x0=min(dates), x1=max(dates), y0=std_dev, y1=std_dev, line=dict(color="Red", dash="dash"), name=f'Std Dev ({std_dev:.2f})')
         else:
             print("Информация о дате отсутствует или не имеет распознаваемого формата.")
             return
     else:
         if not pd.api.types.is_datetime64_any_dtype(data['Date']):
             data['Date'] = pd.to_datetime(data['Date'])
-        plt.plot(data['Date'], data['Close'], label='Close Price')
-        plt.plot(data['Date'], data['Moving_Average'], label='Moving Average')
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='Close Price'))
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Moving_Average'], mode='lines', name='Moving Average'))
 
-    plt.title(f"{ticker} Цена акций с течением времени")
-    plt.xlabel("Дата")
-    plt.ylabel("Цена")
-    plt.legend()
+    fig.update_layout(title_text=f"{ticker} Цена акций с течением времени",
+                      xaxis_title="Дата",
+                      yaxis_title="Цена",
+                      legend_title="Серия данных")
 
     if filename is None:
         filename = f"{ticker}_{period}_stock_price_chart.png"
 
-    plt.savefig(filename)
-    print(f"График сохранен как {filename}")
+    
+    fig.write_html(filename)
+    print(f"Интерактивный график сохранен как {filename}")
 
 def notify_if_strong_fluctuations(data, threshold):
     max_price = data['Close'].max()
